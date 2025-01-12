@@ -1,6 +1,7 @@
 package com.quangcd.cinemaproject.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.Date;
@@ -17,6 +18,7 @@ public class Movie extends BaseEntity {
     private Long id;
 
     private String title;
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
     private String mainGenre;
 
@@ -25,4 +27,9 @@ public class Movie extends BaseEntity {
 
     private String posterUrl;
     private int duration; // Duration in minutes
+    private String director;
+    private String rating;
+    private String rateVote;
+    private String trailerUrl;
+
 }

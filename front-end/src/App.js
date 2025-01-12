@@ -36,6 +36,8 @@ import ManageVideo from './scenes/icon/ManageVideo';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import DashboardDetail from './scenes/dashboard/DashboardDetail';
+import './i18n'; // Import the i18n setup
+import Header from './layouts/Header';
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -91,10 +93,7 @@ function App() {
             {/* Layout cho trang Authentication, sử dụng lightTheme */}
             <Route
               element={
-                <ThemeProvider theme={lightTheme}>
-                  <CssBaseline />
-                  <AuthLayout />
-                </ThemeProvider>
+                <Header />
               }
             >
               <Route path="/home" element={<Home />} />

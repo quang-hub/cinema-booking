@@ -5,7 +5,7 @@ import { refreshToken } from '../components/RefreshToken'; // Adjust this path t
 
 // Create an Axios instance with the base URL
 const Axios = axios.create({
-  baseURL: 'http://localhost:8081/api', // replace with your actual API base URL
+  baseURL: 'http://localhost:8080/api', // replace with your actual API base URL
 });
 
 // Refresh token logic
@@ -44,7 +44,7 @@ Axios.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
-        
+
         refreshToken()
           .then(success => {
             if (success) {
@@ -57,7 +57,7 @@ Axios.interceptors.response.use(
             } else {
               processQueue(new Error("Refresh token expired"), null);
               clearTokens();
-              window.location.href="/login";
+              window.location.href = "/login";
               dispatchLogoutEvent();
               reject(error);
             }
@@ -65,10 +65,10 @@ Axios.interceptors.response.use(
           .catch(err => {
             processQueue(err, null);
             clearTokens();
-            window.location.href="/login";
+            window.location.href = "/login";
             dispatchLogoutEvent();
             reject(err);
-            
+
           })
           .finally(() => {
             isRefreshing = false;

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -23,6 +24,10 @@ public class MovieDto {
     private Date releaseDate;
     private String posterUrl;
     private int duration;
+    private String director;
+    private String rating;
+    private String rateVote;
+    private String trailerUrl;
     private List<Genre> genres;
 
 }

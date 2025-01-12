@@ -15,37 +15,37 @@ function Login() {
 
   // Hàm gọi API để đăng nhập
 
-const fetchUserData = async (username, password) => {
+  const fetchUserData = async (username, password) => {
 
-  try {
-    const response = await Axios.post("/auth/login", {
-      username,
-      password,
-    }, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const response = await Axios.post("/auth/login", {
+        username,
+        password,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    const result = response.data;
+      const result = response.data;
 
-    if (response.status === 200) {
-      if (result.data) {
-        // Lưu token vào localStorage
-        localStorage.setItem("authToken", result.data.token);
-        localStorage.setItem("refreshToken", result.data.refreshToken);
-        
-        // Chuyển hướng tới trang dashboard sau khi đăng nhập thành công
-        navigate("/dashboard");
-      } else {
-        setErrorMessage(result.message || "Đăng nhập thất bại, xin hãy thử lại sau.");
+      if (response.status === 200) {
+        if (result.data) {
+          // Lưu token vào localStorage
+          localStorage.setItem("authToken", result.data.token);
+          localStorage.setItem("refreshToken", result.data.refreshToken);
+
+          // Chuyển hướng tới trang dashboard sau khi đăng nhập thành công
+          navigate("/dashboard");
+        } else {
+          setErrorMessage(result.message || "Đăng nhập thất bại, xin hãy thử lại sau.");
+        }
       }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setErrorMessage("Có lỗi xảy ra, xin hãy thử lại sau.");
     }
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    setErrorMessage("Có lỗi xảy ra, xin hãy thử lại sau.");
-  }
-};
+  };
 
 
   // Khởi tạo useFormik
@@ -73,11 +73,11 @@ const fetchUserData = async (username, password) => {
       <NavBar />
       <div className="flex h-screen">
         {/* Panorama Viewer */}
-        <div className="w-1/2 h-full">
+        {/* <div className="w-1/2 h-full">
           <PanoramaViewer />
-        </div>
+        </div> */}
         {/* Login Form */}
-        <div className="w-1/2 h-full flex flex-col justify-center items-center p-6 bg-gray-50">
+        <div className="w-full h-full flex flex-col justify-center items-center p-6 bg-gray-50">
           <div className="w-full max-w-sm">
             {/* Brand Name */}
             <div className="mb-12 text-left">
@@ -138,7 +138,7 @@ const fetchUserData = async (username, password) => {
                 type="submit"
                 className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
               >
-                 Đăng nhập
+                Đăng nhập
               </button>
               {/* Hiển thị thông báo lỗi dưới form */}
               {errorMessage && (

@@ -1,314 +1,238 @@
-//home
 import React, { useEffect, useState } from "react";
-import { Panos } from "./Panos";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { FaRegClock, FaChair, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
+import { useTranslation } from 'react-i18next';
 import Axios from "../../components/Axios";
-import { motion, AnimatePresence } from "framer-motion";
-import KcnInfoModal from "./KcnInfoModal";
-import AreaListPanel from "./AreaListPanel";
-import GuidePopup from "./Guide";
+import StarIcon from '@mui/icons-material/Star';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ShowtimeSelection from "./ShowtimeSelection";
+
+
+
+const generateSeats = () => {
+  const rows = ["A", "B", "C", "D", "E", "F"];
+  const seatsPerRow = 8;
+  const seats = [];
+
+  rows.forEach(row => {
+    for (let i = 1; i <= seatsPerRow; i++) {
+      seats.push({
+        id: `${row}${i}`,
+        row: row,
+        number: i,
+        isBooked: Math.random() < 0.3
+      });
+    }
+  });
+
+  return seats;
+};
 
 const Home = () => {
-  let token = localStorage.getItem("authToken") || "";
-  const [isPopupOpen, setIsPopupOpen] = useState(false); // State để điều khiển popup
+  const { t, i18n } = useTranslation();
+  const [movies, setMovies] = useState([]);
+  const [movieData, setMovieData] = useState();
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [selectedShowtime, setSelectedShowtime] = useState(null);
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [step, setStep] = useState(1);
+  const [seats] = useState(generateSeats());
 
-  const openPopup = () => setIsPopupOpen(true);  // Mở popup
-  const closePopup = () => setIsPopupOpen(false); // Đóng popup
+  const handleGetDetailMovie = async (movie) => {
+    setSelectedMovie(movie);
+    console.log(movie);
 
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false); // Điều khiển video hiển thị
-  const toggleVideo = () => setIsVideoPlaying(!isVideoPlaying);
-
-  const navigate = useNavigate();
-  const location = useLocation();
-
-
-  // Get the code from URL search params
-  const queryParams = new URLSearchParams(location.search);
-  const codeFromParams = queryParams.get("code");
-  const codeFromState = location.state ? location.state.code : null;
-
-  const hotspot = location.state ? location.state.hotspot || "" : null;
-
-  // Default to "KCN-100" if no code is provided
-  const initialCode = codeFromParams || codeFromState || "";
-
-
-  // Local state to hold the code
-  const [code, setCode] = useState(initialCode);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [listKcn, setListKcn] = useState([]);
-  const [kcnData, setkcnData] = useState();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAreaPanelOpen, setIsAreaPanelOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState("");
-
-  const [kcnName, setKcnName] = useState("");
-
+    await fetchMovieDetail(movie.id);
+    setStep(2);
+  }
 
   useEffect(() => {
 
-    const fetchData = async () => {
-      try {
-        const url = `/industrial-park/get-all-has-tour`;
-        const response = await Axios.get(url, {
-          headers: {
-            accept: "*/*",
-          },
-        });
-        const responseData = response.data;
-        setListKcn(responseData.data);
-        setKcnName(responseData.data.find(s => s.code === code)?.name || response.data.data[0].name || "");
-        if (code === "") {
-          setCode(response.data.data[0].code);
-        }
-        console.log(kcnName);
+    fetchHistoryData();
+  }, [])
 
+  const handleSeatSelection = (seat) => {
+    if (seat.isBooked) return;
 
-      } catch (error) {
-        console.error("Error fetching scenes:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-  const handleChangeXml = (item) => {
-    setCode(item.code);
-    setIsDropdownOpen(false);
-    // Update the URL with the new code
-    const newUrl = `/home?code=${item.code}&name=${item.name}`;
-    navigate(newUrl);
-
-    // Reload the page to reflect changes
-    window.location.reload(); // This forces a full page reload
+    if (selectedSeats.find(s => s.id === seat.id)) {
+      setSelectedSeats(selectedSeats.filter(s => s.id !== seat.id));
+    } else {
+      setSelectedSeats([...selectedSeats, seat]);
+    }
   };
-
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-  const toggleAreaPanel = () => setIsAreaPanelOpen(!isAreaPanelOpen);
-
-
-
-  useEffect(() => {
-    fetchDataDetailIP(code);
-  }, [code]);
-
-  const fetchDataDetailIP = async (code) => {
+  const fetchMovieDetail = async (movieId) => {
     try {
-      const url = `/industrial-park/get-detail/${code}`;
+      const url = `/movieGenre/${movieId}`;
+
       const response = await Axios.get(url, {
         headers: {
-          accept: "*/*",
-        },
+          'accept': '*/*'
+        }
       });
+
+      // debugger;
       const responseData = response.data;
       console.log(responseData);
-
-      // console.log(getUserCode());
-
-      setCurrentUser(responseData.data.userCode);
-
-      setkcnData(responseData.data);
+      setMovieData(responseData.data);
     } catch (error) {
-      console.error("Error fetching scenes:", error);
+      console.error('Error fetching scenes:', error);
+    }
+  };
+  const fetchHistoryData = async () => {
+    try {
+      const url = `/movie/search`;
+
+      const response = await Axios.post(url, {}, {
+        headers: {
+          'accept': '*/*'
+        }
+      });
+
+      // debugger;
+      const responseData = response.data;
+      console.log(responseData);
+      setMovies(responseData.data);
+    } catch (error) {
+      console.error('Error fetching scenes:', error);
     }
   };
 
+  const MovieSelection = () => (
+    <div className="">
+      <h1 className="text-4xl mt-5">{t('ListMovie')}</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+        {movies && movies.map((movie) => (
+          <div key={movie.id} className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition duration-300">
+            <img src={movie.posterUrl} alt={movie.title} className="w-full h-64 object-cover" />
+            <div className="p-4">
+              <h3 className="text-xl font-bold mb-2">{movie.title}</h3>
+              <p className="text-gray-600 mb-2">{t('Genre')} {movie.mainGenre}</p>
+              <p className="text-gray-600 mb-2">{t('Director')} {movie.director}</p>
+              <p className="text-gray-600 mb-4">
+                <FaRegClock className="inline mr-2" />
+                {movie.duration} {t('mintes')}
+                <StarIcon className="inline ml-2 text-yellow-400" />
+                {movie.rating}{movie.rateVote}
+              </p>
+              <button
+                onClick={() => {
+                  handleGetDetailMovie(movie);
+                }}
+                className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
+              >
+                {t('viewDetails')}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
+  const SeatingLayout = () => (
+    <div className="max-w-4xl mx-auto p-6">
+      <button
+        onClick={() => {
+          setStep(2);
+        }}
+
+      >
+        <ArrowBackIcon />
+      </button>
+      <h2 className="text-2xl font-bold mb-6">{t('selectSeats')}</h2>
+      <div className="mb-8 bg-gray-100 p-4 rounded-lg">
+        <div className="flex justify-center gap-8 mb-4">
+          <div className="flex items-center">
+            <div className="w-6 h-6 bg-gray-300 rounded mr-2"></div>
+            <span>{t('available')}</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-6 h-6 bg-blue-600 rounded mr-2"></div>
+            <span>{t('selected')}</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-6 h-6 bg-red-600 rounded mr-2"></div>
+            <span>{t('booked')}</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-8 gap-2 max-w-2xl mx-auto">
+          {seats.map((seat) => (
+            <button
+              key={seat.id}
+              onClick={() => handleSeatSelection(seat)}
+              disabled={seat.isBooked}
+              className={`p-2 rounded flex items-center justify-center ${seat.isBooked ? "bg-red-600 text-white cursor-not-allowed" : selectedSeats.find(s => s.id === seat.id) ? "bg-blue-600 text-white" : "bg-gray-300 hover:bg-gray-400"}`}
+            >
+              <FaChair className="text-lg" />
+            </button>
+          ))}
+        </div>
+      </div>
+      {selectedSeats.length > 0 && (
+        <button
+          onClick={() => setStep(4)}
+          className="w-full max-w-xs mx-auto block bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition duration-300"
+        >
+          {t('confirmSelection')} ({selectedSeats.length} {t('seats')})
+        </button>
+      )}
+    </div>
+  );
+
+  const BookingConfirmation = () => (
+    <div className="max-w-2xl mx-auto p-6">
+      <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="text-center mb-6">
+          <FaCheckCircle className="text-green-500 text-5xl mx-auto mb-4" />
+          <h2 className="text-2xl font-bold">{t('bookingSummary')}</h2>
+        </div>
+        <div className="space-y-4">
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-semibold">{t('movie')}:</span>
+            <span>{selectedMovie.title}</span>
+          </div>
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-semibold">{t('showtime')}:</span>
+            <span>{selectedShowtime}</span>
+          </div>
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-semibold">{t('seats')}:</span>
+            <span>{selectedSeats.map(seat => seat.id).join(", ")}</span>
+          </div>
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-semibold">{t('totalSeats')}:</span>
+            <span>{selectedSeats.length}</span>
+          </div>
+        </div>
+        <button
+          onClick={() => {
+            alert(t('bookingConfirmed'));
+            setStep(1);
+            setSelectedMovie(null);
+            setSelectedShowtime(null);
+            setSelectedSeats([]);
+          }}
+          className="w-full bg-green-600 text-white py-3 rounded-md mt-8 hover:bg-green-700 transition duration-300"
+        >
+          {t('confirmBooking')}
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="vr360 h-full">
-      <motion.div
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="fixed top-0 left-0 transform -translate-x-1/2 w-full h-16 z-[95] bg-white/30 text-black font-medium py-2 px-6 backdrop-blur-lg shadow-lg rounded-b-2xl flex items-center justify-between space-x-6 border border-gray-400"
-      >
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="text-lg hover:text-blue-700 transition-colors"
-        >
-          <a href="/industrial-park" className="flex items-center space-x-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-              />
-            </svg>
-            <span>Quản lý KCN/CCN</span>
-          </a>
-        </motion.div>
-
-        <div className="relative">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg border border-gray-200 hover:border-blue-400 transition-all duration-300"
-          >
-            <span className="text-gray-700">{kcnName}</span>
-            <svg
-              className={`w-5 h-5 transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : ""
-                }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </motion.button>
-
-          <AnimatePresence>
-            {isDropdownOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.2 }}
-                className="absolute top-full mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50"
-              >
-                {listKcn.map((item) => (
-                  <motion.div
-                    key={item.code}
-                    whileHover={{ backgroundColor: "#f3f4f6" }}
-                    onClick={() => handleChangeXml(item)}
-                    className={`px-4 py-3 cursor-pointer transition-colors ${item.code === code
-                      ? "bg-sky-200"
-                      : "text-gray-700 hover:text-blue-600"
-                      }`}
-                  >
-                    {item.name}
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="text-lg hover:text-blue-600 transition-colors"
-        >
-          <a onClick={handleOpenModal} className="flex items-center space-x-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16m-7 6h7"
-              />
-            </svg>
-            <span>Thông tin</span>
-          </a>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="text-lg hover:text-blue-600 transition-colors"
-        >
-          <a onClick={openPopup} className="flex items-center space-x-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4h16v16H4V4zm0 0l8 5 8-5"
-              />
-            </svg>
-            <span>Hướng dẫn</span>
-          </a>
-
-        </motion.div>
-        <GuidePopup isOpen={isPopupOpen} closePopup={closePopup} />
-
-        {token === "" && (
-          <motion.div whileHover={{ scale: 1.05 }} className="text-lg">
-            <a
-              href="/login"
-              className="flex items-center space-x-2 text-blue-600"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-                />
-              </svg>
-              <span>Đăng nhập</span>
-            </a>
-          </motion.div>
-        )}
-        <button
-          onClick={toggleAreaPanel}
-          className="fixed top-20 right-4 bg-white px-4 py-2 rounded-lg shadow-md border text-lg hover:text-blue-700 transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 5h12M9 3v2m-6 6h12M9 11v2m-6 6h12M9 17v2"
-            />
-          </svg>
-          {/* <span>Danh sách khu đất</span> */}
-        </button>
-      </motion.div>
-      {/* <TransparentVideo videoSrc="http://localhost:8081/tour-direc/video.mp4" /> */}
-
-
-      {isAreaPanelOpen && (
-        <AreaListPanel
-          areas={kcnData.areas}
-          isOpen={isAreaPanelOpen}
-          togglePanel={toggleAreaPanel}
-          parkCode={code}
-        />
-      )}
-
-      {/* Industrial Park Info Modal */}
-      <KcnInfoModal
-        open={isModalOpen}
-        onClose={handleCloseModal}
-        kcnData={kcnData}
-      />
-
-      {code !== "" && <Panos code={code} hotspot={hotspot} currentUser={currentUser} />}
+    <div className="bg-gray-50">
+      <div className="container mx-auto">
+        {step === 1 && <MovieSelection />}
+        {step === 2 && <ShowtimeSelection
+          movieData={movieData}
+          selectedShowtime={selectedShowtime}
+          setSelectedShowtime={setSelectedShowtime}
+          setStep={setStep}
+          t={t} // Hoặc hàm dịch của bạn
+        />}
+        {step === 3 && <SeatingLayout />}
+        {step === 4 && <BookingConfirmation />}
+      </div>
     </div>
   );
 };
