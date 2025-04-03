@@ -20,6 +20,6 @@ public class MovieGenreDto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Movie movie;
-    private List<Genre> genre;
+    private MovieDto movie;
+    private List<String> genre;
 }

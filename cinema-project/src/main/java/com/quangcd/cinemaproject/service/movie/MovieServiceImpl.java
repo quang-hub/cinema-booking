@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,8 +41,30 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public Movie findMovieById(Long id) {
-        return movieRepository.findById(id).orElse(null);
+    public MovieDto findMovieById(Long id) {
+        // Tìm movie theo ID
+        Optional<Movie> movieOptional = movieRepository.findById(id);
+
+        // Kiểm tra xem movie có tồn tại không
+        if (movieOptional.isPresent()) {
+            Movie movie = movieOptional.get();
+            // Chuyển đổi Movie sang MovieDto
+            return MovieDto.builder()
+                    .id(movie.getId())
+                    .title(movie.getTitle())
+                    .description(movie.getDescription())
+                    .duration(movie.getDuration())
+                    .director(movie.getDirector())
+                    .mainGenre(movie.getMainGenre())
+                    .posterUrl(movie.getPosterUrl())
+                    .rateVote(movie.getRateVote())
+                    .rating(movie.getRating())
+                    .releaseDate(movie.getReleaseDate())
+                    .trailerUrl(movie.getTrailerUrl())
+                    .build();
+        } else {
+            return null;
+        }
     }
 
 }

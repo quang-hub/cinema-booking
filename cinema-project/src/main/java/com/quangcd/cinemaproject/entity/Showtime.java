@@ -17,12 +17,16 @@ public class Showtime extends BaseEntity {
     private Long id;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date startTime;
+    private Date startDate;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date endDate;
 
     @Column(name = "movie_id")
-    private Long movieId; // Reference to Movie ID
+    private Long movieId;
 
     @Column(name = "theater_id")
-    private Long theaterId; // Reference to Theater ID
+    private Long theaterId;
+
 }
 

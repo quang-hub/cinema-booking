@@ -16,10 +16,13 @@ public class Seat extends BaseEntity {
 
     private String seatNumber; // A1, A2, B1, etc.
     private String type; // REGULAR, VIP, etc.
-
     private boolean isAvailable;
-
+    private int seatColumn;
+    private int seatRow;
     @Column(name = "theater_id")
-    private Long theaterId; // Reference to Theater ID
+    private Long theaterId;
+
+    @Column(name = "room_id")
+    private Long roomId; // Reference to Theater ID
 }
 

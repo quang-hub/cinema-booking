@@ -43,6 +43,7 @@ public class MovieGenreServiceImpl implements MovieGenreService {
                 .movie(movieService.findMovieById(movieId))
                 .genre(movieGenreRepository.findByMovieId(movieId).stream()
                         .map(movieGenre -> genreService.findGenreById(movieGenre.getGenreId()))
+                        .map(Genre::getName)
                         .collect(Collectors.toList()))
                 .build();
 
